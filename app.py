@@ -61,6 +61,13 @@ def create_app():
 
         return jsonify(appearance.to_dict(include_episode=True, include_guest=True)), 201
 
+    @app.route('/')
+    def index():
+        return jsonify({
+            "message": "Late Show API",
+            "endpoints": ["/episodes", "/episodes/<id>", "/guests", "/appearances (POST)"]
+        })
+
     return app
 
 if __name__ == '__main__':
