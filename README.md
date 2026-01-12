@@ -1,110 +1,226 @@
-Instructions
-Setup
-Create a new PRIVATE repository. Ensure your repository has a name in the following format; lateshow-firstname-lastname (Example: lateshow-jane-doe). 
-You have been provided a Postman collection Download Postman collection. This collection contains all the endpoints that you are required to create with this API. You can download and import it into your Postman application to test that your app works correctly. 
-How to import postman collection.
+# Late Show API Challenge
 
-Select `Upload Files`, navigate to this repo folder, and select `challenge-4-lateshow.postman_collection.json` as the file to import.
-Before you submit! Save and run your code to verify that it works as you expect. 
-You MUST have a well-written README in your repository. Ensure your markdown renders correctly before submission. You can use Visual Studio Code Markdown preview to see how it would appear on your GitHub repository.
-Resources
-How to write a good README.
- 
+A Flask-based REST API for managing episodes, guests, and appearances on a late-night show. This project implements a code challenge demonstrating database relationships, RESTful endpoints, and proper error handling.
 
-Deliverables
-Your job is to build out the Flask API to add the functionality described in the deliverables below.
+## Table of Contents
+- [Features](#features)
+- [Technologies Used](#technologies-used)
+- [Setup](#setup)
+- [API Endpoints](#api-endpoints)
+- [Testing](#testing)
+- [Database Models](#database-models)
+- [Requirements](#requirements)
 
-Models
-You will implement an API for the following data model:
+## Features
+- **Episode Management**: Create and retrieve show episodes with dates and episode numbers
+- **Guest Management**: Track guest appearances with names and occupations
+- **Appearance Tracking**: Record guest appearances on episodes with ratings (1-5)
+- **RESTful API**: Full CRUD operations with proper HTTP status codes
+- **Data Validation**: Input validation with meaningful error messages
+- **Relationships**: Many-to-many relationships between episodes and guests via appearances
 
-domain.png
+## Technologies Used
+- **Flask**: Lightweight Python web framework
+- **Flask-SQLAlchemy**: ORM for database interactions
+- **SQLite**: Database for development and testing
+- **Postman**: API testing and documentation
 
-Now you can implement the relationships as shown in the ER Diagram:
+## Setup
 
-- An `Episode` has many `Guest`s through `Appearance`
-- A `Guest` has many `Episode`s through `Appearance`
-Instructions
+### Prerequisites
+- Python 3.8+
+- pip (Python package manager)
 
-Setup
+### Installation
 
-Create a new PRIVATE repository. Ensure your repository has a name in the following format: lateshow-firstname-lastname (example: lateshow-jane-doe).
+1. **Clone the repository** (replace with your actual repo name):
+   ```bash
+   git clone https://github.com/yourusername/lateshow-yourname.git
+   cd lateshow-yourname
+   ```
 
-You have been provided a Postman collection: `challenge-4-lateshow.postman_collection.json`. Import that into Postman (Upload Files) to test endpoints.
+2. **Create a virtual environment**:
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
 
-Deliverables
+3. **Install dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-Your job is to build out the Flask API to add the functionality described below.
+4. **Seed the database with sample data**:
+   ```bash
+   python seed.py
+   ```
 
-Models & Relationships
+5. **Run the application**:
+   ```bash
+   python app.py
+   ```
 
-- An `Episode` has many `Guest`s through `Appearance`.
-- A `Guest` has many `Episode`s through `Appearance`.
-- An `Appearance` belongs to a `Guest` and belongs to an `Episode`.
+The API will be available at `http://localhost:5555`
 
-Apperances should cascade-delete when their parent `Episode` or `Guest` is removed.
+## API Endpoints
 
-Validations
+### Episodes
 
-- `Appearance.rating` must be an integer between 1 and 5 (inclusive).
-
-Routes Required
-
-a. GET /episodes
-
-Return an array of episodes with `id`, `date`, and `number`.
-
-b. GET /episodes/:id
-
-Return the episode with `appearances` array. Each appearance should include `episode_id`, `guest` (with `id`, `name`, `occupation`), `guest_id`, `id`, and `rating`. If the episode is not found, return `{ "error": "Episode not found" }` with a 404 status.
-
-c. GET /guests
-
-Return an array of guests with `id`, `name`, and `occupation`.
-
-d. POST /appearances
-
-Create a new `Appearance` tied to an existing `Episode` and `Guest`. Body example:
-
+#### GET /episodes
+Returns a list of all episodes.
 ```json
-{ "rating": 5, "episode_id": 2, "guest_id": 3 }
+[
+  {
+    "id": 1,
+    "date": "1/11/99",
+    "number": 1
+  }
+]
 ```
 
-On success return the created appearance including nested `episode` (id/date/number) and `guest` (id/name/occupation). On failure return `{ "errors": [ ... ] }` with an appropriate status code.
+#### GET /episodes/:id
+Returns a specific episode with all its appearances.
+```json
+{
+  "id": 1,
+  "date": "1/11/99",
+  "number": 1,
+  "appearances": [
+    {
+      "id": 1,
+      "rating": 4,
+      "guest_id": 1,
+      "episode_id": 1,
+      "guest": {
+        "id": 1,
+        "name": "Michael J. Fox",
+        "occupation": "actor"
+      }
+    }
+  ]
+}
+```
 
-Setup and run (local)
+### Guests
 
-1. Create a Python virtual environment and install dependencies:
+#### GET /guests
+Returns a list of all guests.
+```json
+[
+  {
+    "id": 1,
+    "name": "Michael J. Fox",
+    "occupation": "actor"
+  }
+]
+```
+
+### Appearances
+
+#### POST /appearances
+Creates a new appearance. Requires `rating` (1-5), `episode_id`, and `guest_id`.
+```json
+// Request body
+{
+  "rating": 5,
+  "episode_id": 2,
+  "guest_id": 3
+}
+
+// Response
+{
+  "id": 28,
+  "rating": 5,
+  "guest_id": 3,
+  "episode_id": 2,
+  "guest": {
+    "id": 3,
+    "name": "Sandra Bernhard",
+    "occupation": "Comedian"
+  },
+  "episode": {
+    "id": 2,
+    "date": "1/12/99",
+    "number": 2
+  }
+}
+```
+
+## Testing
+
+### Using Postman
+1. Download and install [Postman](https://www.postman.com/)
+2. Import the collection: `challenge-4-lateshow.postman_collection.json`
+3. Run the requests to test all endpoints
+
+### Manual Testing
+You can also test endpoints manually using curl:
 
 ```bash
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
+# Get all episodes
+curl http://localhost:5555/episodes
+
+# Get episode by ID
+curl http://localhost:5555/episodes/1
+
+# Get all guests
+curl http://localhost:5555/guests
+
+# Create appearance
+curl -X POST http://localhost:5555/appearances \
+  -H "Content-Type: application/json" \
+  -d '{"rating": 5, "episode_id": 2, "guest_id": 3}'
 ```
 
-2. Seed the database with sample data:
+## Database Models
 
-```bash
-python seed.py
-```
+### Episode
+- `id`: Primary key
+- `date`: Episode date (string)
+- `number`: Episode number (integer)
 
-3. Run the app:
+### Guest
+- `id`: Primary key
+- `name`: Guest name (string)
+- `occupation`: Guest occupation (string, optional)
 
-```bash
-python app.py
-```
+### Appearance
+- `id`: Primary key
+- `rating`: Rating 1-5 (integer, validated)
+- `episode_id`: Foreign key to Episode
+- `guest_id`: Foreign key to Guest
 
-Endpoints
+### Relationships
+- An Episode has many Guests through Appearances
+- A Guest has many Episodes through Appearances
+- Appearances cascade delete when parent Episode or Guest is removed
 
-- `GET /episodes` - returns list of episodes (id, date, number)
-- `GET /episodes/:id` - returns an episode with `appearances` (includes nested guest)
-- `GET /guests` - returns list of guests
-- `POST /appearances` - create an appearance; body: `{ "rating": 5, "episode_id": 2, "guest_id": 3 }`
+## Requirements
 
-Postman
+### Models & Relationships
+- Episode ↔ Appearance (one-to-many)
+- Guest ↔ Appearance (one-to-many)
+- Appearance validations (rating 1-5)
+- Cascade deletes
 
-Import `challenge-4-lateshow.postman_collection.json` into Postman via Upload Files and test endpoints.
+### Routes
+- GET /episodes - List episodes (id, date, number)
+- GET /episodes/:id - Episode with appearances (nested guest data)
+- GET /guests - List guests (id, name, occupation)
+- POST /appearances - Create appearance with nested response
 
-Notes
+### Error Handling
+- 404 for non-existent episodes
+- Validation errors for invalid data
+- Proper JSON error responses
 
-This repository includes a minimal Flask app (`app.py`), models (`models.py`), and a `seed.py` script that populates sample data matching the examples in the assignment.
-```
+## Submission Notes
+- Ensure your repository is private
+- Repository name format: `lateshow-firstname-lastname`
+- Test all endpoints before submission
+- README renders correctly on GitHub
+- All requirements implemented and tested
+
+---
+
+*Built with ❤️ for Phase 4 Code Challenge*
